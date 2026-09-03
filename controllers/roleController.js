@@ -5,7 +5,7 @@ const Role = require('../models/Role');
 // @access  Private (Admin)
 const getRoles = async (req, res) => {
   try {
-    const roles = await Role.find({});
+    const roles = await Role.find({ name: { $ne: 'Admin' } });
     res.json(roles);
   } catch (error) {
     res.status(500).json({ message: error.message });

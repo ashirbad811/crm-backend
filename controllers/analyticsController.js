@@ -3,15 +3,14 @@ const Customer = require('../models/Customer');
 const Deal = require('../models/Deal');
 const Activity = require('../models/Activity');
 
+const { applyRBACFilter } = require('../utils/rbac');
+
 // @desc    Get dashboard analytics
 // @route   GET /api/analytics/dashboard
 // @access  Private
 const getDashboardStats = async (req, res) => {
   try {
-    let matchQuery = {};
-    if (req.user.role === 'Sales Executive') {
-      matchQuery.assignedTo = req.user._id;
-    }
+    const matchQuery = await applyRBACFilter({}, req.user, 'Dashboard', 'View');
 
     // Leads Stats
     const totalLeads = await Lead.countDocuments(matchQuery);
@@ -45,10 +44,10 @@ const getDashboardStats = async (req, res) => {
     });
 
     // Activities Stats
-    const actMatch = req.user.role === 'Sales Executive' ? { createdBy: req.user._id } : {};
-    const pendingActivities = await Activity.countDocuments({ ...actMatch, status: 'Pending' });
-    const completedActivities = await Activity.countDocuments({ ...actMatch, status: 'Completed' });
-    const overdueActivities = await Activity.countDocuments({ ...actMatch, status: 'Overdue' }); // Simple check if status is overdue
+    const actMatchQuery = await applyRBACFilter({}, req.user, 'Dashboard', 'View');
+    const pendingActivities = await Activity.countDocuments({ ...actMatchQuery, status: 'Pending' });
+    const completedActivities = await Activity.countDocuments({ ...actMatchQuery, status: 'Completed' });
+    const overdueActivities = await Activity.countDocuments({ ...actMatchQuery, status: 'Overdue' }); // Simple check if status is overdue
 
     res.json({
       leads: { total: totalLeads, new: newLeads, qualified: qualifiedLeads, converted: convertedLeads, lost: lostLeads, conversionRate },

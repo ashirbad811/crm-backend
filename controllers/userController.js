@@ -7,11 +7,36 @@ const bcrypt = require('bcryptjs');
 // @access  Private/Admin
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find({})
+    const adminRole = await Role.findOne({ name: 'Admin' });
+    const query = adminRole ? { role: { $ne: adminRole._id } } : {};
+    
+    const users = await User.find(query)
       .populate('manager', 'name email')
       .populate('role', 'name')
       .select('-password')
       .sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const { getAccessibleUserIds } = require('../utils/rbac');
+
+// @desc    Get users that current user can assign leads to
+// @route   GET /api/users/assignable
+// @access  Private
+const getAssignableUsers = async (req, res) => {
+  try {
+    const allowedIds = await getAccessibleUserIds(req.user, 'Leads', 'Assign');
+    
+    let query = {};
+    if (allowedIds !== null) {
+      if (allowedIds.length === 0) return res.json([]);
+      query._id = { $in: allowedIds };
+    }
+    
+    const users = await User.find(query).select('name email');
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -130,4 +155,4 @@ const updateUser = async (req, res) => {
   }
 };
 
-module.exports = { getUsers, createUser, deleteUser, updateUser };
+module.exports = { getUsers, getAssignableUsers, createUser, deleteUser, updateUser };

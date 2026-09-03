@@ -12,7 +12,7 @@ const getActivities = async (req, res) => {
     if (relatedTo) query.relatedTo = relatedTo;
     if (status) query.status = status;
     
-    const allowedIds = await getAccessibleUserIds(req.user);
+    const allowedIds = await getAccessibleUserIds(req.user, 'Activities', 'View');
     if (allowedIds !== null) {
       if (!relatedTo) {
         query.createdBy = { $in: allowedIds };
@@ -61,7 +61,7 @@ const updateActivity = async (req, res) => {
 
     if (!activity) return res.status(404).json({ message: 'Activity not found' });
 
-    const hasAccess = await checkRecordAccess(activity.createdBy, req.user);
+    const hasAccess = await checkRecordAccess(activity.createdBy, req.user, 'Activities', 'Edit');
     if (!hasAccess) {
       return res.status(403).json({ message: 'Not authorized' });
     }

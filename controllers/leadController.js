@@ -118,6 +118,11 @@ const updateLead = async (req, res) => {
 
     // Check if updating assignedTo (Manager/Admin only)
     if (req.body.assignedTo && req.body.assignedTo !== lead.assignedTo.toString()) {
+      const canAssign = await checkRecordAccess(lead.assignedTo, req.user, 'Leads', 'Assign');
+      if (!canAssign) {
+        return res.status(403).json({ message: 'Not authorized to reassign leads' });
+      }
+      
       await logTimeline(lead._id, 'Lead', 'Assignment', `Lead reassigned`, req.user._id);
       await logNotification(req.body.assignedTo, 'Lead Assignment', `You have been reassigned a lead: ${lead.firstName} ${lead.lastName}`, lead._id);
     }

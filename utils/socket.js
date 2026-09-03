@@ -7,8 +7,9 @@ module.exports = {
   init: (httpServer) => {
     io = socketIo(httpServer, {
       cors: {
-        origin: '*', // Adjust this to match your frontend origin in production
-        methods: ['GET', 'POST']
+        origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+        methods: ['GET', 'POST'],
+        credentials: true
       }
     });
 

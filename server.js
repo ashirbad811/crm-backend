@@ -10,7 +10,10 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
@@ -23,6 +26,7 @@ app.use('/api/activities', require('./routes/activityRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/roles', require('./routes/roleRoutes'));
+app.use('/api/timeline', require('./routes/timelineRoutes'));
 
 // Basic Route
 app.get('/', (req, res) => {
